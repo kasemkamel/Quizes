@@ -237,3 +237,13 @@ footer.note { text-align: center; color: var(--text-muted); font-size: .82rem; p
   .grade-picker { grid-template-columns: 1fr; }
   .card { padding: 1.3rem; }
 }
+
+/* القائمة المنسدلة: الخيارات بنص أسود على خلفية فاتحة (المتصفح بيرسمها بخلفية بيضاء) */
+select option {
+  background-color: #F6F8F7;
+  color: #040606;
+}
+select option:checked {
+  background-color: #D77428;
+  color: #040606;
+}
