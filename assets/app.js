@@ -90,6 +90,15 @@ async function renderStartScreen() {
   document.getElementById("startBtn").addEventListener("click", handleStart);
 }
 
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 async function handleStart() {
   const nameInput = document.getElementById("studentName");
   const lessonSelect = document.getElementById("lessonSelect");
@@ -123,7 +132,12 @@ async function handleStart() {
     if (!quizData.questions || quizData.questions.length === 0) {
       throw new Error("لا توجد أسئلة في هذا الدرس بعد. اختر درسًا آخر.");
     }
-    state.questions = quizData.questions;
+    state.questions = shuffleArray(quizData.questions).map((q) => {
+      if (q.type === "mcq" && Array.isArray(q.options)) {
+        return { ...q, options: shuffleArray(q.options) };
+      }
+      return q;
+    });
     state.currentIndex = 0;
     state.answers = {};
     state.totalSeconds = Math.max(MIN_SECONDS, state.questions.length * SECONDS_PER_QUESTION);
