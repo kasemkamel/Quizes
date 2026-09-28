@@ -1,24 +1,27 @@
 /* ============================================================
    منصة اختبارات البرمجة - بكالوريا مصرية
-   لوحة الألوان:
-   bg #0E1220 | panel #171C2E | panel-alt #1F2740
-   accent (mint) #3DDC97 | accent-2 (amber) #F5A623 | danger #FF6B6B
-   text #EDEFF7 | text-muted #8B93B0 | border #2A3252
+   لوحة الألوان (من الصورة):
+   teal #306D64 | deep green #04332D | near-black #040606
+   dark rust #4C1507 | burnt orange #B53F0D | orange #D77428
+   + درجات الأبيض والأسود للنصوص
    الخطوط: Cairo (عناوين) / IBM Plex Sans Arabic (نصوص) / JetBrains Mono (أرقام وعدّاد الوقت)
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
 
 :root {
-  --bg: #0E1220;
-  --panel: #171C2E;
-  --panel-alt: #1F2740;
-  --accent: #3DDC97;
-  --accent-2: #F5A623;
-  --danger: #FF6B6B;
-  --text: #EDEFF7;
-  --text-muted: #8B93B0;
-  --border: #2A3252;
+  --bg: #040606;
+  --panel: #04332D;
+  --panel-alt: rgba(48, 109, 100, 0.22);
+  --accent: #D77428;
+  --accent-2: #306D64;
+  --danger: #B53F0D;
+  --danger-bg: #4C1507;
+  --danger-text: #F2A275;
+  --on-accent: #040606;
+  --text: #F6F8F7;
+  --text-muted: #A7B9B5;
+  --border: rgba(48, 109, 100, 0.65);
 }
 
 * { box-sizing: border-box; }
@@ -26,7 +29,11 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
+  background:
+    radial-gradient(900px 420px at 50% -8%, rgba(48,109,100,.38), transparent 70%),
+    radial-gradient(700px 360px at 110% 105%, rgba(181,63,13,.20), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: 'IBM Plex Sans Arabic', sans-serif;
   direction: rtl;
@@ -49,13 +56,14 @@ p { line-height: 1.8; color: var(--text-muted); }
   align-items: center;
   gap: .6rem;
   padding: .8rem 1.4rem;
-  background: var(--panel);
+  background: rgba(4, 51, 45, .75);
   border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(6px);
 }
 .editor-tab .dot {
   width: 9px; height: 9px; border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  box-shadow: 0 0 10px var(--accent);
 }
 .editor-tab .dot.running { animation: pulse 1.4s infinite; }
 .editor-tab .filename { font-family: 'JetBrains Mono', monospace; color: var(--text-muted); font-size: .95rem; }
@@ -119,7 +127,7 @@ textarea { min-height: 110px; resize: vertical; }
 button, .btn {
   display: inline-block;
   background: var(--accent);
-  color: #06251A;
+  color: var(--on-accent);
   border: none;
   border-radius: 4px;
   padding: .8rem 1.6rem;
@@ -131,12 +139,13 @@ button, .btn {
 }
 button:hover, .btn:hover { filter: brightness(1.08); }
 button:disabled { opacity: .5; cursor: not-allowed; }
-button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+button.secondary { background: transparent; border: 1px solid var(--accent-2); color: var(--text); }
+button.secondary:hover { border-color: var(--accent); }
 
 .error-box {
-  background: rgba(255,107,107,.1);
+  background: var(--danger-bg);
   border: 1px solid var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
   padding: .8rem 1rem;
   border-radius: 4px;
   margin: 1rem 0;
@@ -156,7 +165,7 @@ button.secondary { background: transparent; border: 1px solid var(--border); col
   font-weight: 700;
   color: var(--accent);
 }
-.timer.low { color: var(--danger); }
+.timer.low { color: var(--danger-text); animation: pulse 1s infinite; }
 .progress-track {
   height: 4px;
   background: var(--panel-alt);
@@ -182,7 +191,7 @@ button.secondary { background: transparent; border: 1px solid var(--border); col
 }
 .option-row:hover { border-color: var(--accent); }
 .option-row input { accent-color: var(--accent); }
-.option-row.selected { border-color: var(--accent); background: rgba(61,220,151,.08); }
+.option-row.selected { border-color: var(--accent); background: rgba(215,116,40,.14); }
 
 .result-score {
   text-align: center;
@@ -206,9 +215,9 @@ button.secondary { background: transparent; border: 1px solid var(--border); col
   border-radius: 3px;
   margin-inline-start: .5rem;
 }
-.badge.ok { background: rgba(61,220,151,.15); color: var(--accent); }
-.badge.bad { background: rgba(255,107,107,.15); color: var(--danger); }
-.badge.partial { background: rgba(245,166,35,.15); color: var(--accent-2); }
+.badge.ok { background: rgba(48,109,100,.55); color: #E3F4F0; }
+.badge.bad { background: var(--danger-bg); color: var(--danger-text); }
+.badge.partial { background: rgba(215,116,40,.2); color: var(--accent); }
 
 table.results-table {
   width: 100%;
