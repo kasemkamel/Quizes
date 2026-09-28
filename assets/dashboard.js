@@ -1,4 +1,5 @@
 let lastAttempts = [];
+const GRADE_NAMES = { 1: "أولى ثانوي", 2: "تانية ثانوي", 3: "بايثون" };
 
 function escapeHtml(str) {
   const div = document.createElement("div");
@@ -18,7 +19,7 @@ async function loadResults() {
 
   try {
     const res = await fetch(`${FUNCTIONS_URL}/get-results`, {
-      headers: authHeaders({ "x-dashboard-password": pw }),
+      headers: authHeaders({ "x-dashboard-password": encodeURIComponent(pw) }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "حدث خطأ");
@@ -53,12 +54,12 @@ function renderTable(attempts) {
             <p style="color:var(--text); margin:.3rem 0;">${escapeHtml(x.question_text || "")}</p>
             <p style="margin:.3rem 0;"><b>إجابة الطالب:</b> ${escapeHtml(x.student_answer || "(فارغة)")}</p>
             <p style="margin:.3rem 0;"><b>التقييم:</b> ${escapeHtml(x.feedback || "")}</p>
-            ${x.ai_errors && x.ai_errors.length ? `<p class="mono" style="direction:ltr;color:var(--danger);font-size:.78rem;">${x.ai_errors.map(escapeHtml).join("<br>")}</p>` : ""}
+            ${x.ai_errors && x.ai_errors.length ? `<p class="mono" style="direction:ltr;color:var(--danger-text);font-size:.78rem;">${x.ai_errors.map(escapeHtml).join("<br>")}</p>` : ""}
           </div>`)
         .join("");
       return `<tr>
         <td>${escapeHtml(a.student_name)}</td>
-        <td>${a.grade}</td>
+        <td>${GRADE_NAMES[a.grade] || a.grade}</td>
         <td>${escapeHtml(a.lessons?.title || "")}</td>
         <td class="mono">${a.total_score} / ${a.max_score} (${pct}%)</td>
         <td class="mono">${date}</td>
@@ -90,7 +91,7 @@ function exportCsv() {
     const pct = a.max_score > 0 ? Math.round((a.total_score / a.max_score) * 100) : 0;
     const date = new Date(a.submitted_at).toLocaleString("ar-EG");
     lines.push(
-      [a.student_name, a.grade, a.lessons?.title || "", a.total_score, a.max_score, `${pct}%`, date]
+      [a.student_name, GRADE_NAMES[a.grade] || a.grade, a.lessons?.title || "", a.total_score, a.max_score, `${pct}%`, date]
         .map((v) => `"${String(v).replace(/"/g, '""')}"`)
         .join(",")
     );

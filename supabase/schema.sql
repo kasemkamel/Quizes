@@ -8,19 +8,26 @@
 create extension if not exists "pgcrypto";
 
 -- ------------------------------------------------------------
--- 1) جدول الدروس (Lessons)
+-- 1) جدول الدروس (Lessons) - الوحيد المسموح بقراءته مباشرة من المتصفح
 -- ------------------------------------------------------------
 create table if not exists lessons (
   id uuid primary key default gen_random_uuid(),
-  grade smallint not null check (grade in (1,2)),   -- 1 = أولى ثانوي، 2 = تانية ثانوي
+  grade smallint not null check (grade in (1,2,3)),   -- 1 = أولى ثانوي، 2 = تانية ثانوي، 3 = بايثون
   title text not null,
   sort_order int not null default 0,
   is_active boolean not null default true,
   created_at timestamptz default now()
 );
 
+alter table lessons enable row level security;
+
+drop policy if exists "public read active lessons" on lessons;
+create policy "public read active lessons"
+  on lessons for select
+  using (is_active = true);
+
 -- ------------------------------------------------------------
--- 2) جدول الأسئلة (Questions) - حساس: مفيش وصول مباشر له من المتصفح
+-- 2) جدول الأسئلة (Questions) - حساس: صفر وصول من المتصفح
 -- ------------------------------------------------------------
 create table if not exists questions (
   id uuid primary key default gen_random_uuid(),
@@ -34,19 +41,25 @@ create table if not exists questions (
   sort_order int not null default 0
 );
 
+alter table questions enable row level security;
+-- مفيش أي policy هنا عمدًا = صفر وصول بالـ anon key. الوصول فقط عبر الـ Edge Functions بالـ service_role key.
+
 -- ------------------------------------------------------------
--- 3) جدول قايمة الطلبة المعتمدة (Roster) - حساس
+-- 3) جدول قايمة الطلبة المعتمدة (Roster) - حساس: صفر وصول من المتصفح
 -- ------------------------------------------------------------
 create table if not exists students (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  grade smallint not null check (grade in (1,2)),
+  grade smallint not null check (grade in (1,2,3)),
   created_at timestamptz default now(),
   unique (name, grade)
 );
 
+alter table students enable row level security;
+-- مفيش أي policy هنا عمدًا = صفر وصول بالـ anon key. التحقق من الاسم بيتم داخل start-attempt فقط.
+
 -- ------------------------------------------------------------
--- 4) جدول محاولات الاختبار (Attempts) - حساس
+-- 4) جدول محاولات الاختبار (Attempts) - حساس: صفر وصول من المتصفح
 -- ------------------------------------------------------------
 create table if not exists attempts (
   id uuid primary key default gen_random_uuid(),
@@ -62,27 +75,13 @@ create table if not exists attempts (
   answers jsonb   -- [{question_id, type, student_answer, score, max_score, feedback}]
 );
 
+alter table attempts enable row level security;
+-- مفيش أي policy هنا عمدًا = صفر وصول بالـ anon key. القراءة والكتابة فقط عبر الـ Edge Functions.
+
 -- يمنع الطالب من تسليم نفس الدرس مرتين
 create unique index if not exists attempts_one_submission
   on attempts (student_name, grade, lesson_id)
   where status = 'submitted';
-
--- ------------------------------------------------------------
--- 5) تفعيل الحماية على مستوى الصفوف (RLS) على كل الجداول
--- ------------------------------------------------------------
-alter table lessons  enable row level security;
-alter table questions enable row level security;
-alter table students enable row level security;
-alter table attempts enable row level security;
-
--- الدروس فقط هي المسموح بقرائتها مباشرة من المتصفح (العنوان بس، مفيش أسئلة)
-drop policy if exists "public read active lessons" on lessons;
-create policy "public read active lessons"
-  on lessons for select
-  using (is_active = true);
-
--- questions / students / attempts: مفيش أي policy = صفر وصول من المفتاح العام (anon)
--- الوصول الوحيد ليهم هيكون من الـ Edge Functions اللي بتستخدم الـ service_role key
 
 -- ============================================================
 -- بيانات تجريبية للاختبار (اختياري - امسح السطور دي لو مش عايزها)

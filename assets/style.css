@@ -92,9 +92,9 @@ main.wrap {
 
 .grade-picker {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  max-width: 620px;
+  max-width: 780px;
   width: 100%;
 }
 .grade-tile {

@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
         totalScore += score;
         gradedAnswers.push({
           question_id: q.id,
+          question_text: q.question_text,
           type: "mcq",
           student_answer: ans.value,
           score,
@@ -78,12 +79,14 @@ Deno.serve(async (req) => {
         totalScore += result.score;
         gradedAnswers.push({
           question_id: q.id,
+          question_text: q.question_text,
           type: "essay",
           student_answer: ans.value,
           score: result.score,
           max_score: q.max_score,
           feedback: result.feedback,
           graded_by: result.gradedBy,
+          ai_errors: result.errors ?? null,
         });
       }
     }

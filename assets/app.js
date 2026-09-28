@@ -7,6 +7,7 @@ const tabDot = document.getElementById("tabDot");
 
 const params = new URLSearchParams(location.search);
 const GRADE = Number(params.get("grade")) || 1;
+const GRADE_NAMES = { 1: "أولى ثانوي", 2: "تانية ثانوي", 3: "بايثون" };
 
 const SECONDS_PER_QUESTION = 90;
 const MIN_SECONDS = 300;
@@ -32,22 +33,19 @@ function escapeHtml(str) {
 }
 
 async function restGet(path) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-  });
-  if (!res.ok) throw new Error("تعذر الاتصال بقاعدة البيانات");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: authHeaders() });
+  if (!res.ok) {
+    let detail = "";
+    try { detail = (await res.json()).message || ""; } catch {}
+    throw new Error(`HTTP ${res.status} ${detail}`);
+  }
   return res.json();
 }
 
 async function callFunction(name, { method = "POST", body, headers = {} } = {}) {
   const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      ...headers,
-    },
+    headers: authHeaders({ "Content-Type": "application/json", ...headers }),
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
@@ -57,13 +55,13 @@ async function callFunction(name, { method = "POST", body, headers = {} } = {}) 
 
 // ---------------- شاشة 1: اختيار الدرس وإدخال الاسم ----------------
 async function renderStartScreen() {
-  tabFilename.textContent = `grade_${GRADE}.py`;
+  tabFilename.textContent = GRADE === 3 ? "python.py" : `grade_${GRADE}.py`;
   app.innerHTML = `<p class="mono" style="color:var(--text-muted)">... جاري تحميل الدروس</p>`;
 
   try {
     state.lessons = await restGet(`lessons?grade=eq.${GRADE}&is_active=eq.true&order=sort_order.asc&select=id,title`);
   } catch (e) {
-    app.innerHTML = `<div class="error-box">تعذر تحميل الدروس. تأكد من إعداد الاتصال بقاعدة البيانات.</div>`;
+    app.innerHTML = `<div class="error-box">تعذر تحميل الدروس. تأكد من إعداد الاتصال بقاعدة البيانات.<br><small class="mono" style="direction:ltr;display:block;margin-top:.5rem">${escapeHtml(e.message)}</small></div>`;
     return;
   }
 
@@ -74,6 +72,7 @@ async function renderStartScreen() {
 
   app.innerHTML = `
     <h2>ابدأ اختبارك</h2>
+    <p style="margin:0 0 .5rem;">${GRADE_NAMES[GRADE] || ""}</p>
     <label for="studentName">اسمك بالكامل</label>
     <input type="text" id="studentName" placeholder="مثال: أحمد محمد علي" />
 
@@ -116,11 +115,14 @@ async function handleStart() {
     state.lessonId = lessonSelect.value;
 
     const res = await fetch(`${FUNCTIONS_URL}/get-quiz?lesson_id=${state.lessonId}`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      headers: authHeaders(),
     });
     const quizData = await res.json();
     if (!res.ok) throw new Error(quizData.error || "تعذر تحميل الأسئلة");
 
+    if (!quizData.questions || quizData.questions.length === 0) {
+      throw new Error("لا توجد أسئلة في هذا الدرس بعد. اختر درسًا آخر.");
+    }
     state.questions = quizData.questions;
     state.currentIndex = 0;
     state.answers = {};

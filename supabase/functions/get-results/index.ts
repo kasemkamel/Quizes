@@ -10,7 +10,8 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const providedPassword = req.headers.get("x-dashboard-password");
+  let providedPassword = req.headers.get("x-dashboard-password");
+  try { if (providedPassword) providedPassword = decodeURIComponent(providedPassword); } catch { /* نسيبها زي ما هي */ }
   const realPassword = Deno.env.get("DASHBOARD_PASSWORD");
 
   if (!realPassword || providedPassword !== realPassword) {
