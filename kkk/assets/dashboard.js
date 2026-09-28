@@ -18,11 +18,7 @@ async function loadResults() {
 
   try {
     const res = await fetch(`${FUNCTIONS_URL}/get-results`, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "x-dashboard-password": pw,
-      },
+      headers: authHeaders({ "x-dashboard-password": pw }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "حدث خطأ");
