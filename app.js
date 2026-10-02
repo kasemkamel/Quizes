@@ -300,4 +300,5 @@ function renderResult(result) {
     </div>
   `;
 }
+
 renderStartScreen();
