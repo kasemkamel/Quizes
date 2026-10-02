@@ -123,7 +123,7 @@ async function handleStart() {
     state.studentName = name;
     state.lessonId = lessonSelect.value;
 
-    const res = await fetch(`${FUNCTIONS_URL}/get-quiz?lesson_id=${state.lessonId}`, {
+    const res = await fetch(`${FUNCTIONS_URL}/get-quiz?lesson_id=${state.lessonId}&attempt_id=${state.attemptId}`, {
       headers: authHeaders(),
     });
     const quizData = await res.json();
